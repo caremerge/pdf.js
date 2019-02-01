@@ -1888,10 +1888,10 @@ html[dir='rtl'] #documentPropertiesOverlay .row > * {
     right: 205px;
   }
 
-  /*#outerContainer .hiddenLargeView,  // hide download link for all cases
+  #outerContainer .hiddenLargeView,
   #outerContainer .hiddenMediumView {
     display: inherit;
-  }*/
+  }
   #outerContainer .visibleLargeView,
   #outerContainer .visibleMediumView {
     display: none;
