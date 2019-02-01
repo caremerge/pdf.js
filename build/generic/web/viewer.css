@@ -2076,7 +2076,7 @@ html[dir='rtl'] #documentPropertiesOverlay .row > * {
     right: 205px;
   }
 
-  /*#outerContainer .hiddenLargeView, // hide download link for all cases
+  /*#outerContainer .hiddenLargeView,  // hide download link for all cases
   #outerContainer .hiddenMediumView {
     display: inherit;
   }*/
