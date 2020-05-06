@@ -653,13 +653,10 @@ var PDFViewerApplication = {
   },
 
   download: function pdfViewDownload() {
-    function downloadByUrl() {
-      downloadManager.downloadUrl(url, filename);
-    }
-
-    var url = this.url.split('#')[0];
-    var filename = getPDFFileNameFromURL(url);
-    window.open(url);
+    var a= document.createElement('a');
+    a.target= '_blank';
+    a.href= this.url;
+    a.click();
   },
 
   fallback: function pdfViewFallback(featureId) {
