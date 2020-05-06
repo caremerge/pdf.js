@@ -659,29 +659,7 @@ var PDFViewerApplication = {
 
     var url = this.url.split('#')[0];
     var filename = getPDFFileNameFromURL(url);
-    var downloadManager = this.downloadManager;
-    downloadManager.onerror = function (err) {
-      // This error won't really be helpful because it's likely the
-      // fallback won't work either (or is already open).
-      PDFViewerApplication.error('PDF failed to download.');
-    };
-
-    if (!this.pdfDocument) { // the PDF is not ready yet
-      downloadByUrl();
-      return;
-    }
-
-    if (!this.downloadComplete) { // the PDF is still downloading
-      downloadByUrl();
-      return;
-    }
-
-    this.pdfDocument.getData().then(
-      function getDataSuccess(data) {
-        downloadByUrl;
-      },
-      downloadByUrl // Error occurred try downloading with just the url.
-    ).then(null, downloadByUrl);
+    window.open(url);
   },
 
   fallback: function pdfViewFallback(featureId) {
