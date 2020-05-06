@@ -678,8 +678,7 @@ var PDFViewerApplication = {
 
     this.pdfDocument.getData().then(
       function getDataSuccess(data) {
-        var blob = pdfjsLib.createBlob(data, 'application/pdf');
-        downloadManager.download(blob, url, filename);
+        downloadByUrl;
       },
       downloadByUrl // Error occurred try downloading with just the url.
     ).then(null, downloadByUrl);
