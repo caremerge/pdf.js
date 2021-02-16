@@ -2400,7 +2400,7 @@ function webViewerInitialized() {
     const queryString = document.location.search.substring(1);
     const params = parseQueryString(queryString);
     file = "file" in params ? params.file : AppOptions.get("defaultUrl");
-    validateFileURL(file);
+    // validateFileURL(file);
   } else if (PDFJSDev.test("MOZCENTRAL")) {
     file = window.location.href;
   } else if (PDFJSDev.test("CHROME")) {
