@@ -48,8 +48,8 @@ var _app_options = __webpack_require__(1);
 
 var _app = __webpack_require__(3);
 
-const pdfjsVersion = '2.8.105';
-const pdfjsBuild = 'adf81636f';
+const pdfjsVersion = '2.8.107';
+const pdfjsBuild = 'ed174712d';
 window.PDFViewerApplication = _app.PDFViewerApplication;
 window.PDFViewerApplicationOptions = _app_options.AppOptions;
 ;
@@ -262,7 +262,7 @@ const defaultOptions = {
     kind: OptionKind.VIEWER + OptionKind.PREFERENCE
   },
   enableScripting: {
-    value: true,
+    value: false,
     kind: OptionKind.VIEWER + OptionKind.PREFERENCE
   },
   enableWebGL: {
@@ -397,7 +397,7 @@ const defaultOptions = {
 };
 {
   defaultOptions.disablePreferences = {
-    value: true,
+    value: false,
     kind: OptionKind.VIEWER
   };
   defaultOptions.locale = {
@@ -2003,7 +2003,7 @@ const PDFViewerApplication = {
     this.documentInfo = info;
     this.metadata = metadata;
     this._contentDispositionFilename = contentDispositionFilename;
-    this._contentLength ??= contentLength;
+    this._contentLength ?? (this._contentLength = contentLength);
     console.log(`PDF ${pdfDocument.fingerprint} [${info.PDFFormatVersion} ` + `${(info.Producer || "-").trim()} / ${(info.Creator || "-").trim()}] ` + `(PDF.js: ${_pdfjsLib.version || "-"}` + `${this.pdfViewer.enableWebGL ? " [WebGL]" : ""})`);
     let pdfTitle;
     const infoTitle = info?.Title;
@@ -4252,7 +4252,7 @@ class EventBus {
       }
 
       if (external) {
-        (externalListeners ||= []).push(listener);
+        (externalListeners || (externalListeners = [])).push(listener);
         return;
       }
 
@@ -4268,7 +4268,9 @@ class EventBus {
   }
 
   _on(eventName, listener, options = null) {
-    const eventListeners = this._listeners[eventName] ||= [];
+    var _this$_listeners;
+
+    const eventListeners = (_this$_listeners = this._listeners)[eventName] || (_this$_listeners[eventName] = []);
     eventListeners.push({
       listener,
       external: options?.external === true,
@@ -5920,7 +5922,7 @@ function normalize(text) {
           diff = normalizedCh.length - ch.length;
 
     if (diff !== 0) {
-      (diffs ||= []).push([index, diff]);
+      (diffs || (diffs = [])).push([index, diff]);
     }
 
     return normalizedCh;
@@ -10014,7 +10016,7 @@ class BaseViewer {
       throw new Error("Cannot initialize BaseViewer.");
     }
 
-    const viewerVersion = '2.8.105';
+    const viewerVersion = '2.8.107';
 
     if (_pdfjsLib.version !== viewerVersion) {
       throw new Error(`The API version "${_pdfjsLib.version}" does not match the Viewer version "${viewerVersion}".`);
@@ -11198,7 +11200,7 @@ class BaseViewer {
             let yArray = pageLayout.get(y);
 
             if (!yArray) {
-              pageLayout.set(y, yArray ||= []);
+              pageLayout.set(y, yArray || (yArray = []));
             }
 
             yArray.push(id);
@@ -11336,7 +11338,7 @@ class BaseViewer {
 
     const eventBus = this.eventBus,
           pageOpenPendingSet = this._pageOpenPendingSet = new Set(),
-          scriptingEvents = this._scriptingEvents ||= Object.create(null);
+          scriptingEvents = this._scriptingEvents || (this._scriptingEvents = Object.create(null));
 
     const dispatchPageClose = pageNumber => {
       if (pageOpenPendingSet.has(pageNumber)) {
@@ -14869,3 +14871,4 @@ _app.PDFPrintServiceFactory.instance = {
 /******/ 	// This entry module used 'exports' so it can't be inlined
 /******/ })()
 ;
+//# sourceMappingURL=viewer.js.map

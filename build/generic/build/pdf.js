@@ -250,8 +250,8 @@ var _text_layer = __w_pdfjs_require__(21);
 
 var _svg = __w_pdfjs_require__(22);
 
-const pdfjsVersion = '2.8.105';
-const pdfjsBuild = 'adf81636f';
+const pdfjsVersion = '2.8.107';
+const pdfjsBuild = 'ed174712d';
 {
   const {
     isNodeJS
@@ -2013,7 +2013,7 @@ function _fetchDocument(worker, source, pdfDataRangeTransport, docId) {
 
   return worker.messageHandler.sendWithPromise("GetDocRequest", {
     docId,
-    apiVersion: null,
+    apiVersion: '2.8.107',
     source: {
       data: source.data,
       url: source.url,
@@ -2347,7 +2347,7 @@ class PDFPageProxy {
   }
 
   getJSActions() {
-    return this._jsActionsPromise ||= this._transport.getPageJSActions(this._pageIndex);
+    return this._jsActionsPromise || (this._jsActionsPromise = this._transport.getPageJSActions(this._pageIndex));
   }
 
   render({
@@ -3416,7 +3416,7 @@ class WorkerTransport {
 
       if (!(reason instanceof Error)) {
         const msg = "DocException - expected a valid Error.";
-        (0, _util.unreachable)(msg);
+        (0, _util.warn)(msg);
       }
 
       loadingTask._capability.reject(reason);
@@ -3663,7 +3663,7 @@ class WorkerTransport {
   }
 
   hasJSActions() {
-    return this._hasJSActionsPromise ||= this.messageHandler.sendWithPromise("HasJSActions", null);
+    return this._hasJSActionsPromise || (this._hasJSActionsPromise = this.messageHandler.sendWithPromise("HasJSActions", null));
   }
 
   getCalculationOrderIds() {
@@ -4026,9 +4026,9 @@ const InternalRenderTask = function InternalRenderTaskClosure() {
   return InternalRenderTask;
 }();
 
-const version = '2.8.105';
+const version = '2.8.107';
 exports.version = version;
-const build = 'adf81636f';
+const build = 'ed174712d';
 exports.build = build;
 
 /***/ }),
@@ -7393,7 +7393,9 @@ const StreamKind = {
 };
 
 function wrapReason(reason) {
-  (0, _util.assert)(reason instanceof Error || typeof reason === "object" && reason !== null, 'wrapReason: Expected "reason" to be a (possibly cloned) Error.');
+  if (typeof reason !== "object" || reason === null) {
+    return reason;
+  }
 
   switch (reason.name) {
     case "AbortException":
@@ -7504,7 +7506,6 @@ class MessageHandler {
   }
 
   on(actionName, handler) {
-    (0, _util.assert)(typeof handler === "function", 'MessageHandler.on: Expected "handler" to be a function.');
     const ah = this.actionHandler;
 
     if (ah[actionName]) {
@@ -9775,7 +9776,6 @@ class AnnotationElement {
   }
 
   _renderQuadrilaterals(className) {
-    (0, _util.assert)(this.quadrilaterals, "Missing quadrilaterals during rendering");
     this.quadrilaterals.forEach(quadrilateral => {
       quadrilateral.className = className;
     });
@@ -15261,3 +15261,4 @@ class PDFFetchStreamRangeReader {
 /******/ })()
 ;
 });
+//# sourceMappingURL=pdf.js.map
