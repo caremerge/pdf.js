@@ -48,8 +48,8 @@ var _app_options = __webpack_require__(1);
 
 var _app = __webpack_require__(3);
 
-const pdfjsVersion = '2.8.98';
-const pdfjsBuild = '04879bae5';
+const pdfjsVersion = '2.8.107';
+const pdfjsBuild = 'ed174712d';
 window.PDFViewerApplication = _app.PDFViewerApplication;
 window.PDFViewerApplicationOptions = _app_options.AppOptions;
 ;
@@ -2625,41 +2625,6 @@ const PDFViewerApplication = {
 
 };
 exports.PDFViewerApplication = PDFViewerApplication;
-let validateFileURL;
-{
-  const HOSTED_VIEWER_ORIGINS = ["null", "http://mozilla.github.io", "https://mozilla.github.io"];
-
-  validateFileURL = function (file) {
-    if (file === undefined) {
-      return;
-    }
-
-    try {
-      const viewerOrigin = new URL(window.location.href).origin || "null";
-
-      if (HOSTED_VIEWER_ORIGINS.includes(viewerOrigin)) {
-        return;
-      }
-
-      const {
-        origin,
-        protocol
-      } = new URL(file, window.location.href);
-
-      if (origin !== viewerOrigin && protocol !== "blob:") {
-        throw new Error("file origin does not match viewer's");
-      }
-    } catch (ex) {
-      PDFViewerApplication._localizeMessage("loading_error").then(msg => {
-        PDFViewerApplication._documentError(msg, {
-          message: ex?.message
-        });
-      });
-
-      throw ex;
-    }
-  };
-}
 
 async function loadFakeWorker() {
   if (!_pdfjsLib.GlobalWorkerOptions.workerSrc) {
@@ -10051,7 +10016,7 @@ class BaseViewer {
       throw new Error("Cannot initialize BaseViewer.");
     }
 
-    const viewerVersion = '2.8.98';
+    const viewerVersion = '2.8.107';
 
     if (_pdfjsLib.version !== viewerVersion) {
       throw new Error(`The API version "${_pdfjsLib.version}" does not match the Viewer version "${viewerVersion}".`);
