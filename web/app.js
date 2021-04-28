@@ -978,11 +978,11 @@ const PDFViewerApplication = {
   },
 
   download({ sourceEventType = "download" } = {}) {
-      const a = document.createElement("a");
-      a.target = "_blank";
-      a.className = sourceEventType;
-      a.href = this.url;
-      a.click();
+    const a = document.createElement("a");
+    a.target = "_blank";
+    a.className = sourceEventType;
+    a.href = this.url;
+    a.click();
   },
 
   async save({ sourceEventType = "download" } = {}) {
