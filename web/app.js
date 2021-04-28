@@ -886,36 +886,10 @@ const PDFViewerApplication = {
   },
 
   download({ sourceEventType = "download" } = {}) {
-    function downloadByUrl() {
-      downloadManager.downloadUrl(url, filename);
-    }
-
-    const url = this.baseUrl;
-    // Use this.url instead of this.baseUrl to perform filename detection based
-    // on the reference fragment as ultimate fallback if needed.
-    const filename =
-      this.contentDispositionFilename || getPDFFileNameFromURL(this.url);
-    const downloadManager = this.downloadManager;
-    downloadManager.onerror = err => {
-      // This error won't really be helpful because it's likely the
-      // fallback won't work either (or is already open).
-      this.error(`PDF failed to download: ${err}`);
-    };
-
-    // When the PDF document isn't ready, or the PDF file is still downloading,
-    // simply download using the URL.
-    if (!this.pdfDocument || !this.downloadComplete) {
-      downloadByUrl();
-      return;
-    }
-
-    this.pdfDocument
-      .getData()
-      .then(function (data) {
-        const blob = new Blob([data], { type: "application/pdf" });
-        downloadManager.download(blob, url, filename, sourceEventType);
-      })
-      .catch(downloadByUrl); // Error occurred, try downloading with the URL.
+      var a = document.createElement('a');
+      a.target = '_blank';
+      a.href = this.url;
+      a.click();
   },
 
   save({ sourceEventType = "download" } = {}) {
