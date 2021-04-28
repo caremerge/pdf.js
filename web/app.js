@@ -978,8 +978,9 @@ const PDFViewerApplication = {
   },
 
   download({ sourceEventType = "download" } = {}) {
-      var a = document.createElement('a');
-      a.target = '_blank';
+      const a = document.createElement("a");
+      a.target = "_blank";
+      a.className = sourceEventType;
       a.href = this.url;
       a.click();
   },
