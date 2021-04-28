@@ -48,8 +48,8 @@ var _app_options = __webpack_require__(1);
 
 var _app = __webpack_require__(3);
 
-const pdfjsVersion = '2.8.103';
-const pdfjsBuild = '91ad21a42';
+const pdfjsVersion = '2.8.106';
+const pdfjsBuild = '00bd51b3f';
 window.PDFViewerApplication = _app.PDFViewerApplication;
 window.PDFViewerApplicationOptions = _app_options.AppOptions;
 ;
@@ -1307,8 +1307,9 @@ const PDFViewerApplication = {
   download({
     sourceEventType = "download"
   } = {}) {
-    var a = document.createElement('a');
-    a.target = '_blank';
+    const a = document.createElement("a");
+    a.target = "_blank";
+    a.className = sourceEventType;
     a.href = this.url;
     a.click();
   },
@@ -10001,7 +10002,7 @@ class BaseViewer {
       throw new Error("Cannot initialize BaseViewer.");
     }
 
-    const viewerVersion = '2.8.103';
+    const viewerVersion = '2.8.106';
 
     if (_pdfjsLib.version !== viewerVersion) {
       throw new Error(`The API version "${_pdfjsLib.version}" does not match the Viewer version "${viewerVersion}".`);

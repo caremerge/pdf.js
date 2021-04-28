@@ -250,8 +250,8 @@ var _text_layer = __w_pdfjs_require__(21);
 
 var _svg = __w_pdfjs_require__(22);
 
-const pdfjsVersion = '2.8.103';
-const pdfjsBuild = '91ad21a42';
+const pdfjsVersion = '2.8.106';
+const pdfjsBuild = '00bd51b3f';
 {
   const {
     isNodeJS
@@ -2013,7 +2013,7 @@ function _fetchDocument(worker, source, pdfDataRangeTransport, docId) {
 
   return worker.messageHandler.sendWithPromise("GetDocRequest", {
     docId,
-    apiVersion: '2.8.103',
+    apiVersion: '2.8.106',
     source: {
       data: source.data,
       url: source.url,
@@ -4026,9 +4026,9 @@ const InternalRenderTask = function InternalRenderTaskClosure() {
   return InternalRenderTask;
 }();
 
-const version = '2.8.103';
+const version = '2.8.106';
 exports.version = version;
-const build = '91ad21a42';
+const build = '00bd51b3f';
 exports.build = build;
 
 /***/ }),
