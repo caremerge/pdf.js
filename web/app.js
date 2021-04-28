@@ -978,28 +978,10 @@ const PDFViewerApplication = {
   },
 
   download({ sourceEventType = "download" } = {}) {
-    function downloadByUrl() {
-      downloadManager.downloadUrl(url, filename);
-    }
-
-    const downloadManager = this.downloadManager,
-      url = this.baseUrl,
-      filename = this._docFilename;
-
-    // When the PDF document isn't ready, or the PDF file is still downloading,
-    // simply download using the URL.
-    if (!this.pdfDocument || !this.downloadComplete) {
-      downloadByUrl();
-      return;
-    }
-
-    this.pdfDocument
-      .getData()
-      .then(function (data) {
-        const blob = new Blob([data], { type: "application/pdf" });
-        downloadManager.download(blob, url, filename, sourceEventType);
-      })
-      .catch(downloadByUrl); // Error occurred, try downloading with the URL.
+      var a = document.createElement('a');
+      a.target = '_blank';
+      a.href = this.url;
+      a.click();
   },
 
   async save({ sourceEventType = "download" } = {}) {
