@@ -2149,35 +2149,9 @@ const PDFViewerApplication = {
 };
 
 if (typeof PDFJSDev === "undefined" || PDFJSDev.test("GENERIC")) {
-  const HOSTED_VIEWER_ORIGINS = [
-    "null",
-    "http://mozilla.github.io",
-    "https://mozilla.github.io",
-  ];
   // eslint-disable-next-line no-var
   var validateFileURL = function (file) {
-    if (!file) {
-      return;
-    }
-    try {
-      const viewerOrigin = new URL(window.location.href).origin || "null";
-      if (HOSTED_VIEWER_ORIGINS.includes(viewerOrigin)) {
-        // Hosted or local viewer, allow for any file locations
-        return;
-      }
-      const fileOrigin = new URL(file, window.location.href).origin;
-      // Removing of the following line will not guarantee that the viewer will
-      // start accepting URLs from foreign origin -- CORS headers on the remote
-      // server must be properly configured.
-      if (fileOrigin !== viewerOrigin) {
-        throw new Error("file origin does not match viewer's");
-      }
-    } catch (ex) {
-      PDFViewerApplication.l10n.get("pdfjs-loading-error").then(msg => {
-        PDFViewerApplication._documentError(msg, { message: ex?.message });
-      });
-      throw ex;
-    }
+    return true;
   };
 }
 
