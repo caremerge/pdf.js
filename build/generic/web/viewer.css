@@ -5046,6 +5046,9 @@ dialog :link{
   #secondaryPrint, #secondaryDownload, #printButton, #downloadButton {
     display: none !important;
   }
+  #secondaryToolbarToggle {
+    display: block !important;
+  }
 }
 
 @media all and (max-width: 560px){
