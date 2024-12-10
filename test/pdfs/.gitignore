@@ -553,6 +553,7 @@
 !poppler-67295-0.pdf
 !poppler-85140-0.pdf
 !issue15012.pdf
+!issue19176.pdf
 !issue15150.pdf
 !poppler-395-0-fuzzed.pdf
 !issue14165.pdf
@@ -687,3 +688,4 @@
 !rotated_ink.pdf
 !inks.pdf
 !inks_basic.pdf
+!issue19182.pdf
