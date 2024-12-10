@@ -4499,6 +4499,7 @@ dialog :link{
   display:inline-block;
   position:relative;
   flex:none;
+  padding-right: 10px;
 }
 
 .toolbarButtonWithContainer  > .toolbarButton{
@@ -5167,6 +5168,12 @@ dialog :link{
   }
 }
 
+@media screen and (max-width: 768px) {
+  #secondaryToolbarToggle {
+    display: none !important;
+  }
+}
+
 @media all and (max-width: 750px){
   #outerContainer .hiddenMediumView{
     display:none !important;
@@ -5184,6 +5191,15 @@ dialog :link{
 
   #toolbarContainer #toolbarViewer .toolbarButtonSpacer{
     width:0;
+  }
+}
+
+@media screen and (max-width: 600px) {
+  #secondaryPrint, #secondaryDownload, #printButton, #downloadButton {
+    display: none !important;
+  }
+  #secondaryToolbarToggle {
+    display: block !important;
   }
 }
 
