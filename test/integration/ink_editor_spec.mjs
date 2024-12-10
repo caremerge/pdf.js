@@ -17,7 +17,7 @@ import {
   awaitPromise,
   closePages,
   createPromise,
-  dragAndDropAnnotation,
+  dragAndDrop,
   getAnnotationSelector,
   getEditors,
   getEditorSelector,
@@ -31,6 +31,7 @@ import {
   loadAndWait,
   scrollIntoView,
   switchToEditor,
+  waitForAnnotationModeChanged,
   waitForNoElement,
   waitForSelectedEditor,
   waitForSerialized,
@@ -796,7 +797,14 @@ describe("Ink Editor", () => {
     it("must move an annotation", async () => {
       await Promise.all(
         pages.map(async ([browserName, page]) => {
-          await page.click(getAnnotationSelector("277R"), { count: 2 });
+          const modeChangedHandle = await waitForAnnotationModeChanged(page);
+          const inkRect = await getRect(page, getAnnotationSelector("277R"));
+          await page.mouse.click(
+            inkRect.x + inkRect.width / 2,
+            inkRect.y + inkRect.height / 2,
+            { count: 2 }
+          );
+          await awaitPromise(modeChangedHandle);
           const edgeB = getEditorSelector(10);
           await waitForSelectedEditor(page, edgeB);
 
@@ -808,23 +816,202 @@ describe("Ink Editor", () => {
           const serialized = await getSerialized(page);
           expect(serialized).withContext(`In ${browserName}`).toEqual([]);
 
-          const editorRect = await page.$eval(edgeB, el => {
-            const { x, y, width, height } = el.getBoundingClientRect();
-            return { x, y, width, height };
-          });
+          const editorRect = await getRect(page, edgeB);
 
           // Select the annotation we want to move.
           await page.mouse.click(editorRect.x + 2, editorRect.y + 2);
           await waitForSelectedEditor(page, edgeB);
 
-          await dragAndDropAnnotation(
-            page,
-            editorRect.x + editorRect.width / 2,
-            editorRect.y + editorRect.height / 2,
-            100,
-            100
-          );
+          await dragAndDrop(page, edgeB, [[100, 100]]);
           await waitForSerialized(page, 1);
+        })
+      );
+    });
+  });
+
+  describe("Undo deletion popup has the expected behaviour", () => {
+    let pages;
+    const editorSelector = getEditorSelector(0);
+
+    beforeEach(async () => {
+      pages = await loadAndWait("tracemonkey.pdf", ".annotationEditorLayer");
+    });
+
+    afterEach(async () => {
+      await closePages(pages);
+    });
+
+    it("must check that deleting a drawing can be undone using the undo button", async () => {
+      await Promise.all(
+        pages.map(async ([browserName, page]) => {
+          await switchToInk(page);
+
+          const rect = await getRect(page, ".annotationEditorLayer");
+          const xStart = rect.x + 300;
+          const yStart = rect.y + 300;
+          const clickHandle = await waitForPointerUp(page);
+          await page.mouse.move(xStart, yStart);
+          await page.mouse.down();
+          await page.mouse.move(xStart + 50, yStart + 50);
+          await page.mouse.up();
+          await awaitPromise(clickHandle);
+          await commit(page);
+
+          await page.waitForSelector(editorSelector);
+          await waitForSerialized(page, 1);
+
+          await page.waitForSelector(`${editorSelector} button.delete`);
+          await page.click(`${editorSelector} button.delete`);
+          await waitForSerialized(page, 0);
+
+          await page.waitForSelector("#editorUndoBar:not([hidden])");
+          await page.click("#editorUndoBarUndoButton");
+          await waitForSerialized(page, 1);
+          await page.waitForSelector(editorSelector);
+        })
+      );
+    });
+
+    it("must check that the undo deletion popup displays the correct message", async () => {
+      await Promise.all(
+        pages.map(async ([browserName, page]) => {
+          await switchToInk(page);
+
+          const rect = await getRect(page, ".annotationEditorLayer");
+          const xStart = rect.x + 300;
+          const yStart = rect.y + 300;
+          const clickHandle = await waitForPointerUp(page);
+          await page.mouse.move(xStart, yStart);
+          await page.mouse.down();
+          await page.mouse.move(xStart + 50, yStart + 50);
+          await page.mouse.up();
+          await awaitPromise(clickHandle);
+          await commit(page);
+
+          await page.waitForSelector(editorSelector);
+          await waitForSerialized(page, 1);
+
+          await page.waitForSelector(`${editorSelector} button.delete`);
+          await page.click(`${editorSelector} button.delete`);
+          await waitForSerialized(page, 0);
+
+          await page.waitForFunction(() => {
+            const messageElement = document.querySelector(
+              "#editorUndoBarMessage"
+            );
+            return messageElement && messageElement.textContent.trim() !== "";
+          });
+          const message = await page.waitForSelector("#editorUndoBarMessage");
+          const messageText = await page.evaluate(
+            el => el.textContent,
+            message
+          );
+          expect(messageText).toContain("Drawing removed");
+        })
+      );
+    });
+
+    it("must check that the popup disappears when a new drawing is created", async () => {
+      await Promise.all(
+        pages.map(async ([browserName, page]) => {
+          await switchToInk(page);
+
+          const rect = await getRect(page, ".annotationEditorLayer");
+          const xStart = rect.x + 300;
+          const yStart = rect.y + 300;
+          const clickHandle = await waitForPointerUp(page);
+          await page.mouse.move(xStart, yStart);
+          await page.mouse.down();
+          await page.mouse.move(xStart + 50, yStart + 50);
+          await page.mouse.up();
+          await awaitPromise(clickHandle);
+          await commit(page);
+
+          await page.waitForSelector(editorSelector);
+          await waitForSerialized(page, 1);
+
+          await page.waitForSelector(`${editorSelector} button.delete`);
+          await page.click(`${editorSelector} button.delete`);
+          await waitForSerialized(page, 0);
+          await page.waitForSelector("#editorUndoBar:not([hidden])");
+
+          const newRect = await getRect(page, ".annotationEditorLayer");
+          const newXStart = newRect.x + 300;
+          const newYStart = newRect.y + 300;
+          const newClickHandle = await waitForPointerUp(page);
+          await page.mouse.move(newXStart, newYStart);
+          await page.mouse.down();
+          await page.mouse.move(newXStart + 50, newYStart + 50);
+          await page.mouse.up();
+          await awaitPromise(newClickHandle);
+          await commit(page);
+
+          await page.waitForSelector(getEditorSelector(1));
+          await waitForSerialized(page, 1);
+          await page.waitForSelector(getEditorSelector(1));
+          await page.waitForSelector("#editorUndoBar", { hidden: true });
+        })
+      );
+    });
+  });
+
+  describe("Ink must update its stroke width when not the current active layer", () => {
+    let pages;
+
+    beforeAll(async () => {
+      pages = await loadAndWait("tracemonkey.pdf", ".annotationEditorLayer");
+    });
+
+    afterAll(async () => {
+      await closePages(pages);
+    });
+
+    it("must check that the stroke width has been updated after zooming", async () => {
+      await Promise.all(
+        pages.map(async ([browserName, page]) => {
+          await switchToInk(page);
+
+          const rect = await getRect(page, ".annotationEditorLayer");
+
+          const x = rect.x + 20;
+          const y = rect.y + 20;
+          const clickHandle = await waitForPointerUp(page);
+          await page.mouse.move(x, y);
+          await page.mouse.down();
+          await page.mouse.move(x + 50, y + 50);
+          await page.mouse.up();
+          await awaitPromise(clickHandle);
+
+          const svgSelector = ".canvasWrapper svg.draw";
+          const strokeWidth = await page.$eval(svgSelector, el =>
+            parseFloat(el.getAttribute("stroke-width"))
+          );
+
+          await scrollIntoView(page, `.page[data-page-number = "2"]`);
+
+          const rectPageTwo = await getRect(
+            page,
+            `.page[data-page-number = "2"] .annotationEditorLayer`
+          );
+          const originX = rectPageTwo.x + rectPageTwo.width / 2;
+          const originY = rectPageTwo.y + rectPageTwo.height / 2;
+          await page.evaluate(
+            origin => {
+              window.PDFViewerApplication.pdfViewer.increaseScale({
+                scaleFactor: 1.5,
+                origin,
+              });
+            },
+            [originX, originY]
+          );
+
+          const newStrokeWidth = await page.$eval(svgSelector, el =>
+            parseFloat(el.getAttribute("stroke-width"))
+          );
+
+          expect(newStrokeWidth)
+            .withContext(`In ${browserName}`)
+            .not.toEqual(strokeWidth);
         })
       );
     });

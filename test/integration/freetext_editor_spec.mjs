@@ -19,7 +19,7 @@ import {
   copy,
   copyToClipboard,
   createPromise,
-  dragAndDropAnnotation,
+  dragAndDrop,
   firstPageOnTop,
   getEditors,
   getEditorSelector,
@@ -954,19 +954,14 @@ describe("FreeText Editor", () => {
           const serialized = await getSerialized(page);
           expect(serialized).withContext(`In ${browserName}`).toEqual([]);
 
-          const editorRect = await getRect(page, getEditorSelector(0));
+          const editorSelector = getEditorSelector(0);
+          const editorRect = await getRect(page, editorSelector);
 
           // Select the annotation we want to move.
           await page.mouse.click(editorRect.x + 2, editorRect.y + 2);
-          await waitForSelectedEditor(page, getEditorSelector(0));
+          await waitForSelectedEditor(page, editorSelector);
 
-          await dragAndDropAnnotation(
-            page,
-            editorRect.x + editorRect.width / 2,
-            editorRect.y + editorRect.height / 2,
-            100,
-            100
-          );
+          await dragAndDrop(page, editorSelector, [[100, 100]]);
           await waitForSerialized(page, 1);
         })
       );
@@ -2335,29 +2330,29 @@ describe("FreeText Editor", () => {
           const allPositions = [];
 
           for (let i = 0; i < 10; i++) {
+            const editorSelector = getEditorSelector(i);
             await page.mouse.click(rect.x + 10 + 30 * i, rect.y + 100 + 5 * i);
-            await page.waitForSelector(getEditorSelector(i), {
+            await page.waitForSelector(editorSelector, {
               visible: true,
             });
             await page.type(
-              `${getEditorSelector(i)} .internal`,
+              `${editorSelector} .internal`,
               String.fromCharCode(65 + i)
             );
 
             // Commit.
             await page.keyboard.press("Escape");
-            await page.waitForSelector(
-              `${getEditorSelector(i)} .overlay.enabled`
-            );
+            await page.waitForSelector(`${editorSelector} .overlay.enabled`);
 
-            allPositions.push(await getRect(page, getEditorSelector(i)));
+            allPositions.push(await getRect(page, editorSelector));
           }
 
           await selectAll(page);
-          await dragAndDropAnnotation(page, rect.x + 161, rect.y + 126, 39, 74);
+          await dragAndDrop(page, getEditorSelector(4), [[39, 74]]);
 
           for (let i = 0; i < 10; i++) {
-            const pos = await getRect(page, getEditorSelector(i));
+            const editorSelector = getEditorSelector(i);
+            const pos = await getRect(page, editorSelector);
             const oldPos = allPositions[i];
             expect(Math.abs(Math.round(pos.x - oldPos.x) - 39))
               .withContext(`In ${browserName}`)
@@ -3666,6 +3661,127 @@ describe("FreeText Editor", () => {
 
           const serialized = await getSerialized(page, x => x.value);
           expect(serialized[0]).withContext(`In ${browserName}`).toEqual(data);
+        })
+      );
+    });
+  });
+
+  describe("Undo deletion popup has the expected behaviour", () => {
+    let pages;
+    const editorSelector = getEditorSelector(0);
+
+    beforeEach(async () => {
+      pages = await loadAndWait("tracemonkey.pdf", ".annotationEditorLayer");
+    });
+
+    afterEach(async () => {
+      await closePages(pages);
+    });
+
+    it("must check that deleting a FreeText editor can be undone using the undo button", async () => {
+      await Promise.all(
+        pages.map(async ([browserName, page]) => {
+          await switchToFreeText(page);
+
+          const rect = await getRect(page, ".annotationEditorLayer");
+          const data = "Hello PDF.js World !!";
+          await page.mouse.click(rect.x + 100, rect.y + 100);
+          await page.waitForSelector(editorSelector, {
+            visible: true,
+          });
+          await page.type(`${editorSelector} .internal`, data);
+
+          // Commit.
+          await page.keyboard.press("Escape");
+          await page.waitForSelector(`${editorSelector} .overlay.enabled`);
+          await waitForSerialized(page, 1);
+
+          await page.waitForSelector(`${editorSelector} button.delete`);
+          await page.click(`${editorSelector} button.delete`);
+          await waitForSerialized(page, 0);
+
+          await page.waitForSelector("#editorUndoBar:not([hidden])");
+          await page.click("#editorUndoBarUndoButton");
+          await waitForSerialized(page, 1);
+          await page.waitForSelector(editorSelector);
+        })
+      );
+    });
+
+    it("must check that the undo deletion popup displays the correct message", async () => {
+      await Promise.all(
+        pages.map(async ([browserName, page]) => {
+          await switchToFreeText(page);
+
+          const rect = await getRect(page, ".annotationEditorLayer");
+          const data = "Hello PDF.js World !!";
+          await page.mouse.click(rect.x + 100, rect.y + 100);
+          await page.waitForSelector(editorSelector, {
+            visible: true,
+          });
+          await page.type(`${editorSelector} .internal`, data);
+
+          // Commit.
+          await page.keyboard.press("Escape");
+          await page.waitForSelector(`${editorSelector} .overlay.enabled`);
+          await waitForSerialized(page, 1);
+
+          await page.waitForSelector(`${editorSelector} button.delete`);
+          await page.click(`${editorSelector} button.delete`);
+          await waitForSerialized(page, 0);
+
+          await page.waitForFunction(() => {
+            const messageElement = document.querySelector(
+              "#editorUndoBarMessage"
+            );
+            return messageElement && messageElement.textContent.trim() !== "";
+          });
+          const message = await page.waitForSelector("#editorUndoBarMessage");
+          const messageText = await page.evaluate(
+            el => el.textContent,
+            message
+          );
+          expect(messageText).toContain("Text removed");
+        })
+      );
+    });
+
+    it("must check that the popup disappears when a new textbox is created", async () => {
+      await Promise.all(
+        pages.map(async ([browserName, page]) => {
+          await switchToFreeText(page);
+
+          let rect = await getRect(page, ".annotationEditorLayer");
+          const data = "Hello PDF.js World !!";
+          await page.mouse.click(rect.x + 100, rect.y + 100);
+          await page.waitForSelector(editorSelector, {
+            visible: true,
+          });
+          await page.type(`${editorSelector} .internal`, data);
+
+          await page.keyboard.press("Escape");
+          await page.waitForSelector(`${editorSelector} .overlay.enabled`);
+          await waitForSerialized(page, 1);
+
+          await page.waitForSelector(`${editorSelector} button.delete`);
+          await page.click(`${editorSelector} button.delete`);
+          await waitForSerialized(page, 0);
+
+          await page.waitForSelector("#editorUndoBar:not([hidden])");
+          rect = await getRect(page, ".annotationEditorLayer");
+          const newData = "This is a new text box!";
+          await page.mouse.click(rect.x + 150, rect.y + 150);
+          await page.waitForSelector(getEditorSelector(1), {
+            visible: true,
+          });
+          await page.type(`${getEditorSelector(1)} .internal`, newData);
+
+          await page.keyboard.press("Escape");
+          await page.waitForSelector(
+            `${getEditorSelector(1)} .overlay.enabled`
+          );
+          await waitForSerialized(page, 1);
+          await page.waitForSelector("#editorUndoBar", { hidden: true });
         })
       );
     });

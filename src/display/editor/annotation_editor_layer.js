@@ -76,6 +76,8 @@ class AnnotationEditorLayer {
 
   #drawingAC = null;
 
+  #focusedElement = null;
+
   #textLayer = null;
 
   #textSelectionAC = null;
@@ -804,29 +806,46 @@ class AnnotationEditorLayer {
       return;
     }
 
-    this.#uiManager.unselectAll();
+    this.#uiManager.setCurrentDrawingSession(this);
     this.#drawingAC = new AbortController();
     const signal = this.#uiManager.combinedSignal(this.#drawingAC);
     this.div.addEventListener(
       "blur",
       ({ relatedTarget }) => {
         if (relatedTarget && !this.div.contains(relatedTarget)) {
+          this.#focusedElement = null;
           this.commitOrRemove();
         }
       },
       { signal }
     );
-    this.#uiManager.disableUserSelect(true);
     this.#currentEditorType.startDrawing(this, this.#uiManager, false, event);
+  }
+
+  pause(on) {
+    if (on) {
+      const { activeElement } = document;
+      if (this.div.contains(activeElement)) {
+        this.#focusedElement = activeElement;
+      }
+      return;
+    }
+    if (this.#focusedElement) {
+      setTimeout(() => {
+        this.#focusedElement?.focus();
+        this.#focusedElement = null;
+      }, 0);
+    }
   }
 
   endDrawingSession(isAborted = false) {
     if (!this.#drawingAC) {
       return null;
     }
+    this.#uiManager.setCurrentDrawingSession(null);
     this.#drawingAC.abort();
     this.#drawingAC = null;
-    this.#uiManager.disableUserSelect(false);
+    this.#focusedElement = null;
     return this.#currentEditorType.endDrawing(isAborted);
   }
 

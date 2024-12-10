@@ -1408,6 +1408,7 @@ class PDFPageProxy {
   } = {}) {
     return new PageViewport({
       viewBox: this.view,
+      userUnit: this.userUnit,
       scale,
       rotation,
       offsetX,
@@ -2838,6 +2839,7 @@ class WorkerTransport {
               : null;
           const font = new FontFaceObject(exportedData, {
             disableFontFace,
+            fontExtraProperties,
             inspectFont,
           });
 
@@ -3239,6 +3241,20 @@ class PDFObjects {
   has(objId) {
     const obj = this.#objs[objId];
     return !!obj && obj.data !== INITIAL_DATA;
+  }
+
+  /**
+   * @param {string} objId
+   * @returns {boolean}
+   */
+  delete(objId) {
+    const obj = this.#objs[objId];
+    if (!obj || obj.data === INITIAL_DATA) {
+      // Only allow removing the object *after* it's been resolved.
+      return false;
+    }
+    delete this.#objs[objId];
+    return true;
   }
 
   /**
